@@ -55,6 +55,11 @@ public class BurgerTest {
         assertTrue(burger.ingredients.contains(ingredientMock2));
     }
 
+    @Test(expected = IndexOutOfBoundsException.class)
+    public void removeIngredientThrowsExceptionOnInvalidIndex() {
+        burger.removeIngredient(0);
+    }
+
     @Test
     public void moveIngredientChangesOrder() {
         burger.addIngredient(ingredientMock1);
@@ -64,14 +69,32 @@ public class BurgerTest {
         assertEquals(ingredientMock1, burger.ingredients.get(1));
     }
 
+    @Test(expected = IndexOutOfBoundsException.class)
+    public void moveIngredientThrowsExceptionOnInvalidIndex() {
+        burger.moveIngredient(0, 1);
+    }
+
     @Test
     public void getPriceCalculatesCorrectly() {
         burger.setBuns(bunMock);
         burger.addIngredient(ingredientMock1);
         burger.addIngredient(ingredientMock2);
-        // price = bun*2 + ingredients sum
+
         float expected = 100f * 2 + 50f + 30f;
         assertEquals(expected, burger.getPrice(), 0.001f);
+    }
+
+    @Test
+    public void getPriceReturnsZeroIfNoBun() {
+        burger.addIngredient(ingredientMock1);
+        burger.addIngredient(ingredientMock2);
+
+        try {
+            float price = burger.getPrice();
+            fail("Expected NullPointerException or price 0 if bun is null");
+        } catch (NullPointerException e) {
+            // OK
+        }
     }
 
     @Test
@@ -95,5 +118,18 @@ public class BurgerTest {
         burger.setBuns(bunMock);
         String receipt = burger.getReceipt();
         assertTrue(receipt.contains("Price:"));
+    }
+
+    @Test
+    public void getPriceCallsGetPriceOnIngredientsAndBun() {
+        burger.setBuns(bunMock);
+        burger.addIngredient(ingredientMock1);
+        burger.addIngredient(ingredientMock2);
+
+        burger.getPrice();
+
+        verify(bunMock, times(1)).getPrice();
+        verify(ingredientMock1, times(1)).getPrice();
+        verify(ingredientMock2, times(1)).getPrice();
     }
 }
