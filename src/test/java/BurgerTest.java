@@ -24,14 +24,14 @@ public class BurgerTest {
         when(bunMock.getName()).thenReturn("Mock Bun");
 
         ingredientMock1 = mock(Ingredient.class);
-        when(ingredientMock1.getPrice()).thenReturn(50f);
+        when(ingredientMock1.getPrice()).thenReturn(10f);
         when(ingredientMock1.getType()).thenReturn(IngredientType.SAUCE);
-        when(ingredientMock1.getName()).thenReturn("Mock Sauce");
+        when(ingredientMock1.getName()).thenReturn("Кетчуп");
 
         ingredientMock2 = mock(Ingredient.class);
-        when(ingredientMock2.getPrice()).thenReturn(30f);
+        when(ingredientMock2.getPrice()).thenReturn(100f);
         when(ingredientMock2.getType()).thenReturn(IngredientType.FILLING);
-        when(ingredientMock2.getName()).thenReturn("Mock Filling");
+        when(ingredientMock2.getName()).thenReturn("Говядина");
     }
 
     @Test
@@ -80,7 +80,7 @@ public class BurgerTest {
         burger.addIngredient(ingredientMock1);
         burger.addIngredient(ingredientMock2);
 
-        float expected = 100f * 2 + 50f + 30f;
+        float expected = 100f * 2 + 10f + 100f;
         assertEquals(expected, burger.getPrice(), 0.001f);
     }
 
@@ -93,7 +93,6 @@ public class BurgerTest {
             float price = burger.getPrice();
             fail("Expected NullPointerException or price 0 if bun is null");
         } catch (NullPointerException e) {
-            // OK
         }
     }
 
@@ -101,7 +100,8 @@ public class BurgerTest {
     public void getReceiptContainsBunName() {
         burger.setBuns(bunMock);
         String receipt = burger.getReceipt();
-        assertTrue(receipt.contains("Mock Bun"));
+        String expectedBunLine = "(==== Mock Bun ====)";
+        assertTrue(receipt.contains(expectedBunLine));
     }
 
     @Test
@@ -109,15 +109,28 @@ public class BurgerTest {
         burger.setBuns(bunMock);
         burger.addIngredient(ingredientMock1);
         String receipt = burger.getReceipt();
-        assertTrue(receipt.toLowerCase().contains("sauce"));
-        assertTrue(receipt.contains("Mock Sauce"));
+        String expectedIngredientLine = "= sauce Кетчуп =";
+        assertTrue(receipt.toLowerCase().contains(expectedIngredientLine.toLowerCase()));
     }
 
     @Test
-    public void getReceiptContainsPrice() {
+    public void getReceipt() {
+        when(bunMock.getName()).thenReturn("Классическая булочка");
+        when(bunMock.getPrice()).thenReturn(50f);
+
         burger.setBuns(bunMock);
-        String receipt = burger.getReceipt();
-        assertTrue(receipt.contains("Price:"));
+        burger.addIngredient(ingredientMock1);
+        burger.addIngredient(ingredientMock2);
+
+        String expected = String.format(
+                "(==== Классическая булочка ====)%n" +
+                        "= sauce Кетчуп =%n" +
+                        "= filling Говядина =%n" +
+                        "(==== Классическая булочка ====)%n" +
+                        "%nPrice: %f%n",
+                50f * 2 + 10f + 100f
+        );
+        assertEquals(expected, burger.getReceipt());
     }
 
     @Test
